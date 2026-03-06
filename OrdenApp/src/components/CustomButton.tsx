@@ -31,7 +31,7 @@ const getStyles = (variant: 'primary' | 'secondary' ) =>
         alignItems: 'center',
         width: "80%",
         backgroundColor: 
-            variant === "primary" ? "#2e4566": "white",
+            variant === "primary" ? "#66442e": "white",
         borderRadius: 8,
         borderWidth: 1,
         borderColor: "#f3f4f6",

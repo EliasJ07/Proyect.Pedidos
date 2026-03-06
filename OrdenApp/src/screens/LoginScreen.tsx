@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,24 +8,19 @@ import { i18n } from "../contexts/LanguageContext";
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  
   const { login, isAllowed } = useAuth();
 
   const handleOnLogin = () => {
     try {
-         //navegar a una pantalla dentro del mismo stack navigator
-    // navigation.navigate("Home")
 
-    //navegar a una pantalla que espera parametros por ruta dentro del mismo stack navigator 
-    // navigation.navigate("Home", {email})
+      const allowed = login(email, password);
+      if (allowed) {
+        navigation.navigate("Tabs", { screen: "Home" })
+      } else {
+        Alert.alert("Credenciales Incorrectas", "Por favor ingrese correo .gmail");
+      }
 
-    //navegar a una tab especifica
-    const allowed = login(email, password);
-    if (allowed) {
-      navigation.navigate("Tabs", { screen: "Home" })
-    }else{
-      Alert.alert("Credenciales Incorrectas", "Por favor ingrese correo .edu");
-    }
     } catch (error: any) {
       Alert.alert(error.message)
     }
@@ -35,17 +30,25 @@ export default function LoginScreen({ navigation }: any) {
     alert("Alerta logout desde app");
   }
 
+  // NUEVA FUNCION PARA IR A REGISTRO
+  const handleGoToRegisterScreen = () => {
+    navigation.navigate("Register");
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
         <Text>{i18n.t('signIn')}</Text>
+
         <View style={styles.buttonsWrapper}>
+
           <CustomInput
             placeholder={i18n.t('enterEmail')}
             onChange={setEmail}
             value={email}
             typeInput={'email'}
           />
+
           <CustomInput
             placeholder={'Password'}
             onChange={setPassword}
@@ -57,16 +60,26 @@ export default function LoginScreen({ navigation }: any) {
             title={'Login'}
             onClick={handleOnLogin}
           />
+
           <CustomButton
             title={i18n.t('exit')}
             onClick={handleOnLogout}
-            variant={'secondary'} />
+            variant={'secondary'}
+          />
+
+          {/* HIPERVINCULO REGISTRAR */}
+          <TouchableOpacity onPress={handleGoToRegisterScreen}>
+            <Text style={styles.registerText}>
+              ¿No tienes cuenta? Registrarse
+            </Text>
+          </TouchableOpacity>
 
         </View>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -78,13 +91,19 @@ const styles = StyleSheet.create({
     width: "80%",
     height: "80%",
     borderRadius: 15,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f7ece7',
   },
   buttonsWrapper: {
     marginTop: 15,
-    height: "30%",
+    height: "35%",
     alignItems: "center",
     justifyContent: "space-around",
   },
-});
 
+  // ESTILO DEL LINK
+  registerText: {
+    marginTop: 10,
+    color: "blue",
+    textDecorationLine: "underline"
+  }
+});
