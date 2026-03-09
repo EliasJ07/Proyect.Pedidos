@@ -30,7 +30,7 @@ export const AuthProvider = ({children}: {children: React.ReactNode} ) => {
     const [isAllowed, setIsAllowed] = useState<boolean>(false);
 
     const login = (email: string, password: string) => {
-        const allowed = email.endsWith('.gmail');
+        const allowed = email.endsWith('gmail');
         if (allowed){
             setUser({email})
             setIsAllowed(allowed)
