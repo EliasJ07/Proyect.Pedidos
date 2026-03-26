@@ -1,28 +1,41 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 
 interface CustomButtonProps {
   title: string;
   onPress: () => void;
   variant?: "primary" | "secondary";
+  loading?: boolean;
+  disabled?: boolean;
 }
 
 export default function CustomButton({
   title,
   onPress,
   variant = "primary",
+  loading = false,
+  disabled = false,
 }: CustomButtonProps) {
-
   const styles = getStyles(variant);
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        disabled && styles.disabled, // aplica estilo si está deshabilitado
+      ]}
       onPress={onPress}
+      activeOpacity={0.8}
+      disabled={disabled || loading} // evita pulsar mientras carga o está deshabilitado
     >
-      <Text style={styles.text}>
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={variant === "primary" ? "white" : "#66442e"}
+        />
+      ) : (
+        <Text style={styles.text}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -44,5 +57,8 @@ const getStyles = (variant: "primary" | "secondary") =>
       color: variant === "primary" ? "white" : "black",
       fontSize: 18,
       fontWeight: "500",
+    },
+    disabled: {
+      opacity: 0.5, // botón visualmente deshabilitado
     },
   });

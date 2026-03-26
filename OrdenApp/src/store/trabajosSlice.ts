@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Asset } from "react-native-image-picker"; // Asegúrate de este import
+import { Asset } from "react-native-image-picker"; 
 
 export type TrabajoItem = {
   id: string;

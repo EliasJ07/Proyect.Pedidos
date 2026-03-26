@@ -1,5 +1,14 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Alert, Image } from "react-native";
+import React, { useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  Alert,
+  Image,
+} from "react-native";
 import CustomButton from "../components/CustomButton";
 
 /* Expo Document & Image Picker */
@@ -11,26 +20,29 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../store/store";
 import { updateTrabajo, TrabajoItem } from "../store/trabajosSlice";
 
+/* SUPABASE */
+import { supabase } from "../supabase/supabase";
+
 export default function TrabajoScreen() {
   const trabajos = useSelector((state: RootState) => state.trabajos.items);
   const dispatch = useDispatch<AppDispatch>();
 
   // Expandir / Contraer
   const toggleExpand = (id: string) => {
-    const trabajo = trabajos.find(t => t.id === id);
+    const trabajo = trabajos.find((t) => t.id === id);
     if (!trabajo) return;
     dispatch(updateTrabajo({ id, changes: { expanded: !trabajo.expanded } }));
   };
 
   // Contador
   const incrementQuantity = (id: string) => {
-    const trabajo = trabajos.find(t => t.id === id);
+    const trabajo = trabajos.find((t) => t.id === id);
     if (!trabajo) return;
     dispatch(updateTrabajo({ id, changes: { quantity: trabajo.quantity + 1 } }));
   };
 
   const decrementQuantity = (id: string) => {
-    const trabajo = trabajos.find(t => t.id === id);
+    const trabajo = trabajos.find((t) => t.id === id);
     if (!trabajo || trabajo.quantity <= 0) return;
     dispatch(updateTrabajo({ id, changes: { quantity: trabajo.quantity - 1 } }));
   };
@@ -40,7 +52,8 @@ export default function TrabajoScreen() {
     dispatch(updateTrabajo({ id, changes: { notes: text } }));
   };
 
-  // Seleccionar PDF usando Expo DocumentPicker
+  
+    // Seleccionar PDF usando Expo DocumentPicker
   const seleccionarPDF = async (id: string) => {
     try {
       const res = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
@@ -54,7 +67,8 @@ export default function TrabajoScreen() {
     }
   };
 
-  // Seleccionar foto desde galería
+
+  // Foto desde galería
   const seleccionarFoto = async (id: string) => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -68,7 +82,7 @@ export default function TrabajoScreen() {
     }
   };
 
-  // Tomar foto con cámara
+  // Foto con cámara
   const tomarFoto = async (id: string) => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
@@ -82,7 +96,6 @@ export default function TrabajoScreen() {
     }
   };
 
-  // Elegir fuente de foto
   const agregarFoto = (id: string) => {
     Alert.alert("Agregar Foto", "Selecciona fuente", [
       { text: "Cámara", onPress: () => tomarFoto(id) },
@@ -91,13 +104,35 @@ export default function TrabajoScreen() {
     ]);
   };
 
-  // Guardar / Enviar
-  const handleGuardar = () => {
-    const resumen = trabajos.map(t =>
-      `${t.label} - Cantidad: ${t.quantity}, Notas: ${t.notes}, PDF: ${t.pdfAttached ? t.pdfName : "No"}, Foto: ${t.photoUri ? "Sí" : "No"}`
-    ).join("\n\n");
+  // Guardar / Enviar a Supabase
+  const handleGuardar = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    Alert.alert("Datos Guardados / Enviados", resumen);
+      if (!user) {
+        Alert.alert("Error", "Usuario no autenticado");
+        return;
+      }
+
+      const dataToInsert = trabajos.map(t => ({
+        label: t.label ?? "",
+        quantity: t.quantity ?? 0,
+        notes: t.notes ?? "",
+        pdf_attached: t.pdfAttached ?? false,
+        pdf_name: t.pdfName ?? "",
+        photo_url: t.photoUri ?? "",
+        user_id: user.id, // string o number serializable
+      }));
+
+      const { error } = await supabase.from("trabajos").insert(dataToInsert);
+
+      if (error) throw error;
+
+      Alert.alert("Éxito", "Datos guardados correctamente");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error", "No se pudo guardar");
+    }
   };
 
   // Render item
@@ -140,10 +175,7 @@ export default function TrabajoScreen() {
 
           {/* Foto */}
           <View style={{ marginTop: 10 }}>
-            <CustomButton
-              title="Agregar Foto"
-              onPress={() => agregarFoto(item.id)}
-            />
+            <CustomButton title="Agregar Foto" onPress={() => agregarFoto(item.id)} />
           </View>
 
           {item.photoUri && (

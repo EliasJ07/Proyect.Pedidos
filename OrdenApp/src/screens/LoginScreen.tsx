@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity, Animated } from "react-native";
 import CustomInput from "../components/CustomInput";
@@ -16,6 +15,7 @@ import { i18n } from "../contexts/LanguageContext";
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const auth = useSelector((state: RootState) => state.auth);
@@ -44,6 +44,8 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
 
+    setLoading(true);
+
     try {
       const { data, error } = await supabase
         .from("users")
@@ -52,19 +54,28 @@ export default function LoginScreen({ navigation }: any) {
         .eq("password", password)
         .single();
 
+      setLoading(false);
+
       if (error || !data) {
         Alert.alert("Credenciales incorrectas", "Correo o contraseña incorrectos");
         return;
       }
 
-      // Guardar usuario en Redux
-      dispatch(loginRedux({ email: data.email }));
+      // Guardar solo datos serializables en Redux
+      dispatch(
+        loginRedux({
+          id: data.id,             // ✅ number o string
+          email: data.email,       // ✅ string
+          name: data.name || ""    // opcional
+        })
+      );
 
       Alert.alert("Bienvenido", data.email);
 
       navigation.navigate("Tabs", { screen: "Home" });
 
     } catch (err: any) {
+      setLoading(false);
       Alert.alert("Error", "No se pudo iniciar sesión");
       console.log(err);
     }
@@ -109,7 +120,11 @@ export default function LoginScreen({ navigation }: any) {
             typeInput="password"
           />
 
-          <CustomButton title="Login" onPress={handleOnLogin} />
+          <CustomButton
+            title={loading ? "Iniciando..." : "Login"}
+            onPress={handleOnLogin}
+            disabled={loading}
+          />
 
           <CustomButton
             title={i18n.t("exit")}
@@ -190,4 +205,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
