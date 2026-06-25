@@ -1,5 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Asset } from "react-native-image-picker"; 
+
+export type EstadoTrabajo =
+  | "Pendiente"
+  | "En proceso"
+  | "Completado";
 
 export type TrabajoItem = {
   id: string;
@@ -8,8 +12,11 @@ export type TrabajoItem = {
   quantity: number;
   notes: string;
   pdfAttached: boolean;
-  pdfName?: string;   // opcional
-  photoUri?: string;  // opcional, solo URI
+  pdfName?: string;
+  photoUri?: string;
+
+  // NUEVO
+  status: EstadoTrabajo;
 };
 
 interface TrabajosState {
@@ -18,12 +25,52 @@ interface TrabajosState {
 
 const initialState: TrabajosState = {
   items: [
-    { id: '1', label: 'Talonario Fiscal', expanded: false, quantity: 0, notes: '', pdfAttached: false },
-    { id: '2', label: 'Talonario Control Interno', expanded: false, quantity: 0, notes: '', pdfAttached: false },
-    { id: '3', label: 'Brochure', expanded: false, quantity: 0, notes: '', pdfAttached: false },
-    { id: '4', label: 'Tarjetas de presentación', expanded: false, quantity: 0, notes: '', pdfAttached: false },
-    { id: '5', label: 'Otros', expanded: false, quantity: 0, notes: '', pdfAttached: false },
-  ]
+    {
+      id: "1",
+      label: "Talonario Fiscal",
+      expanded: false,
+      quantity: 0,
+      notes: "",
+      pdfAttached: false,
+      status: "Pendiente",
+    },
+    {
+      id: "2",
+      label: "Talonario Control Interno",
+      expanded: false,
+      quantity: 0,
+      notes: "",
+      pdfAttached: false,
+      status: "Pendiente",
+    },
+    {
+      id: "3",
+      label: "Brochure",
+      expanded: false,
+      quantity: 0,
+      notes: "",
+      pdfAttached: false,
+      status: "Pendiente",
+    },
+    {
+      id: "4",
+      label: "Tarjetas de presentación",
+      expanded: false,
+      quantity: 0,
+      notes: "",
+      pdfAttached: false,
+      status: "Pendiente",
+    },
+    {
+      id: "5",
+      label: "Otros",
+      expanded: false,
+      quantity: 0,
+      notes: "",
+      pdfAttached: false,
+      status: "Pendiente",
+    },
+  ],
 };
 
 const trabajosSlice = createSlice({
@@ -32,19 +79,42 @@ const trabajosSlice = createSlice({
   reducers: {
     updateTrabajo: (
       state,
-      action: PayloadAction<{ id: string; changes: Partial<TrabajoItem> }>
+      action: PayloadAction<{
+        id: string;
+        changes: Partial<TrabajoItem>;
+      }>
     ) => {
       const { id, changes } = action.payload;
-      const index = state.items.findIndex(item => item.id === id);
+
+      const index = state.items.findIndex(
+        (item) => item.id === id
+      );
+
       if (index !== -1) {
-        state.items[index] = { ...state.items[index], ...changes };
+        state.items[index] = {
+          ...state.items[index],
+          ...changes,
+        };
       }
     },
-    setTrabajos: (state, action: PayloadAction<TrabajoItem[]>) => {
+
+    setTrabajos: (
+      state,
+      action: PayloadAction<TrabajoItem[]>
+    ) => {
       state.items = action.payload;
+    },
+
+    resetTrabajos: (state) => {
+      state.items = initialState.items;
     },
   },
 });
 
-export const { updateTrabajo, setTrabajos } = trabajosSlice.actions;
+export const {
+  updateTrabajo,
+  setTrabajos,
+  resetTrabajos,
+} = trabajosSlice.actions;
+
 export default trabajosSlice.reducer;
